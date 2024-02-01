@@ -18,12 +18,12 @@ function [mass_data, history] = optimizeMass(altitude_waypoints, throttle_models
 
         m_final = history(end, 4);
         m_prop_final = m_final - m_inert - m_tank;
-        if (m_prop_final < 0) || (m_prop_final / m_final >= f_prop_min)
-            high_bound = m_prop_guess;
-            m_prop_guess = convergence_speed*low_bound + (1 - convergence_speed)*high_bound;
-        else
+        if (m_prop_final < 0) || (m_prop_final / m_final < f_prop_min)
             low_bound = m_prop_guess;
             m_prop_guess = convergence_speed*high_bound + (1 - convergence_speed)*low_bound;
+        else
+            high_bound = m_prop_guess;
+            m_prop_guess = convergence_speed*low_bound + (1 - convergence_speed)*high_bound;
         end
         i = i + 1;
     end
