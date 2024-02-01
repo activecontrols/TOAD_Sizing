@@ -1,31 +1,32 @@
-function [m_propellant, guess_history, t_set, x_set, x_ref] = optimizeMass(altitude_waypoints, m_inert, m_minimum)
+function [mass_data, history] = optimizeMass(altitude_waypoints, throttle_models, m_inert, f_prop_min)
     max_iterations = 100;
-    low_bound = 0;
-    high_bound = m_inert*2;
-    guess_k = high_bound;
-    guess_k_minus_1 = 0;
-    diff = guess_k - guess_k_minus_1;
     convergence_threshold = 0.00001;
-    guess_history = -ones(max_iterations, 1);
-    convergence_factor = 0.5;
+    convergence_speed = 0.5;
+
+    m_prop_guess = m_inert;
+    last_guess = 0;
+    high_bound = m_prop_guess*2;
+    low_bound = 0;
     
-    i = 1;
-    while (i < max_iterations) && (abs(diff)/guess_k > convergence_threshold)
-        guess_history(i) = guess_k;
-        sim_input = assignInModel(altitude_waypoints, m_inert, guess_k);
-        [t_set, x_set, x_ref] = simulateModel(sim_input);
-        m_final = x_set(end, 3);
-        if (m_final < m_minimum)
-            low_bound = guess_k;
+    i = 0;
+    while (i < max_iterations) && (abs(m_prop_guess - last_guess)/m_prop_guess > convergence_threshold)
+        last_guess = m_prop_guess;
+        m_tank = propellantMassToTankMass(m_prop_guess);
+        m_0 = m_inert + m_prop_guess + m_tank;
+        
+        history = simulateModel(m_0, m_inert + m_tank, altitude_waypoints, throttle_models);
+
+        m_final = history(end, 4);
+        m_prop_final = m_final - m_inert - m_tank;
+        if (m_prop_final < 0) || (m_prop_final / m_final >= f_prop_min)
+            high_bound = m_prop_guess;
+            m_prop_guess = convergence_speed*low_bound + (1 - convergence_speed)*high_bound;
         else
-            high_bound = guess_k;
+            low_bound = m_prop_guess;
+            m_prop_guess = convergence_speed*high_bound + (1 - convergence_speed)*low_bound;
         end
-        guess_k_minus_1 = guess_k;
-        guess_k = convergence_factor*low_bound + (1 - convergence_factor)*high_bound;
-        diff = guess_k - guess_k_minus_1;
         i = i + 1;
-        convergence_factor = convergence_factor / 1.1;
     end
-    guess_history = guess_history(guess_history > 0);
-    m_propellant = guess_history(end);
+
+    mass_data = [m_0, m_prop_guess, m_tank, m_final];
 end
