@@ -1,4 +1,4 @@
-function [m_propellant, guess_history] = optimizeMass(altitude_waypoints, m_inert, m_minimum)
+function [m_propellant, guess_history, t_set, x_set, x_ref] = optimizeMass(altitude_waypoints, m_inert, m_minimum)
     max_iterations = 100;
     low_bound = 0;
     high_bound = m_inert*2;
@@ -13,7 +13,7 @@ function [m_propellant, guess_history] = optimizeMass(altitude_waypoints, m_iner
     while (i < max_iterations) && (abs(diff)/guess_k > convergence_threshold)
         guess_history(i) = guess_k;
         sim_input = assignInModel(altitude_waypoints, m_inert, guess_k);
-        [~, x_set, ~] = simulateModel(sim_input);
+        [t_set, x_set, x_ref] = simulateModel(sim_input);
         m_final = x_set(end, 3);
         if (m_final < m_minimum)
             low_bound = guess_k;
