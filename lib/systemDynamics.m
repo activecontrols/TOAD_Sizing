@@ -4,7 +4,7 @@ function x_dot = systemDynamics(t, x, altitude_waypoints, throttle_models, m_dry
     m = x(3);
 
     r_ref = interp1(altitude_waypoints(:, 1), altitude_waypoints(:, 2), t);
-    throttle = -1*(r - r_ref);
+    throttle = -2*(r - r_ref);
 
     if throttle <= 0.4
         throttle = 0.4;
