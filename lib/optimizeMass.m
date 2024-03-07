@@ -28,5 +28,12 @@ function [mass_data, history] = optimizeMass(altitude_waypoints, throttle_models
         i = i + 1;
     end
 
+    m_tank = propellantMassToTankMass(m_prop_guess);
+    m_0 = m_inert + m_prop_guess + m_tank;
+
+    history = simulateModel(m_0, m_inert + m_tank, altitude_waypoints, throttle_models);
+
+    m_final = history(end, 4);
+
     mass_data = [m_0, m_prop_guess, m_tank, m_final];
 end
