@@ -13,7 +13,7 @@ function x_dot = systemDynamics(t, x, altitude_waypoints, throttle_models, m_dry
     end
 
     T = interp1(throttle_models(:, 1), throttle_models(:, 2), throttle);
-    m_dot = -.1*interp1(throttle_models(:, 1), throttle_models(:, 3), throttle);
+    m_dot = -1*interp1(throttle_models(:, 1), throttle_models(:, 3), throttle);
     
     if (m <= m_dry)
         T = 0;
